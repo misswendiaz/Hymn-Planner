@@ -1,12 +1,17 @@
+// Cache to avoid repeated network requests
 let hymnsCache = null;
 
+// Fetches hymn dataset from JSON file
 export async function getHymns() {
   // Return cached version if already loaded
   if (hymnsCache) return hymnsCache;
 
+  // BASE_URL is required for correct routing in Vite deployments
+  const BASE = import.meta.env.BASE_URL;
+
   try {
     // Fetch hymn dataset from hymns.json
-    const response = await fetch("/src/public/json/hymns.json");
+    const response = await fetch(`${BASE}json/hymns.json`);
 
     // Handle HTTP errors
     if (!response.ok) {
@@ -28,9 +33,6 @@ export async function getHymns() {
   } catch (error) {
     // Centralized error logging for debugging
     console.error("Hymn loading error: ", error);
-
-    // Return to an empty array so the interface can continue working
-    hymnsCache = [];
-    return hymnsCache;
+    throw error;
   }
 }

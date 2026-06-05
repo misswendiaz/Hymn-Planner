@@ -1,4 +1,6 @@
 import { initGeneratorPage } from "./generator.js";
+import { initPlansPage } from "./plans.js";
+import(initPlansPage);
 
 // Container for rendering pages/contents
 const root = document.querySelector("#content");
@@ -21,7 +23,7 @@ function router(page = "generator") {
     // initLibraryPage(root);
   } else if (page === "plans") {
     // Plans Page
-    // initPlansPage(root);
+    initPlansPage(root);
   } else {
     // Redirect to Generator page when the page provided is invalid
     initGeneratorPage(root);

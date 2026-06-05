@@ -1,0 +1,238 @@
+/* =========================================================
+   GOOGLE FONTS (Typography System)
+   - Merriweather: headings / hymn titles
+   - Lato: UI / body text
+========================================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Merriweather:wght@300;400;700&display=swap");
+
+/* =========================================================
+   DESIGN SYSTEM (CSS VARIABLES)
+   - Centralized theme control
+   - Makes future redesign easy
+========================================================= */
+
+:root {
+  /* Backgrounds */
+  --bg-primary: #fafaf7;
+  --surface: #ffffff;
+
+  /* Text */
+  --text-primary: #2e2e2e;
+  --text-secondary: #4a4a4a;
+  --text-muted: #5b5b5b;
+
+  /* Accents */
+  --accent-primary: #c8a24a;
+  --accent-secondary: #1e2a3a;
+
+  /* Borders */
+  --border: #e6e2d9;
+}
+
+/* =========================================================
+   BASE LAYOUT
+========================================================= */
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+
+  font-family: "Lato", sans-serif;
+}
+
+/* Global container spacing */
+section {
+  padding: 20px;
+}
+
+/* =========================================================
+   TYPOGRAPHY SYSTEM
+========================================================= */
+
+/* Hymn titles / headings */
+h1,
+h2,
+h3 {
+  font-family: "Merriweather", serif;
+  color: var(--text-primary);
+}
+
+/* Secondary text */
+p,
+label,
+span {
+  color: var(--text-secondary);
+}
+
+/* Muted small text (timestamps, metadata later) */
+.muted {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* =========================================================
+   GENERATOR PAGE
+========================================================= */
+
+.generator {
+  max-width: 800px;
+  margin: auto;
+  background: var(--surface);
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+/* Input layout */
+.topics {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.topics input {
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: "Lato", sans-serif;
+}
+
+/* Mood container spacing */
+#mood-container {
+  margin-bottom: 15px;
+}
+
+/* =========================================================
+   BUTTON SYSTEM
+========================================================= */
+
+button {
+  padding: 10px 14px;
+  border: none;
+  border-radius: 4px;
+
+  cursor: pointer;
+  font-family: "Lato", sans-serif;
+
+  background: var(--accent-secondary);
+  color: white;
+
+  transition: 0.2s ease;
+}
+
+/* Primary action emphasis */
+button:hover {
+  background: var(--accent-primary);
+  color: var(--text-primary);
+}
+
+/* Save button override */
+#saveButton {
+  background: var(--accent-primary);
+  color: var(--text-primary);
+}
+
+/* Delete button (danger action) */
+.deleteButton {
+  background: #b23a3a;
+  color: white;
+}
+
+/* =========================================================
+   OUTPUT PANEL (GENERATOR RESULTS)
+========================================================= */
+
+.suggestions {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid var(--border);
+}
+
+.suggestions p {
+  margin: 6px 0;
+}
+
+/* =========================================================
+   PLANS PAGE
+========================================================= */
+
+.plans {
+  max-width: 900px;
+  margin: auto;
+  background: var(--surface);
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+/* Individual saved plan card */
+.plan-card {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 15px;
+  margin-bottom: 15px;
+  background: var(--surface);
+}
+
+/* =========================================================
+   NAVIGATION (if used)
+========================================================= */
+
+nav {
+  display: flex;
+  gap: 12px;
+  padding: 10px;
+  background: var(--accent-secondary);
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+}
+
+/* =========================================================
+   PRINT STYLES
+========================================================= */
+
+@media print {
+  /* Hide UI controls */
+  .topics,
+  #mood-container,
+  #generateButton,
+  #saveButton,
+  #printButton,
+  nav {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+    color: black;
+  }
+
+  .suggestions,
+  .plan-card {
+    border: none !important;
+  }
+
+  /* Hide all plans by default */
+  .plan-card {
+    display: none !important;
+  }
+
+  /* Only print selected plan */
+  .plan-card.print-target {
+    display: block !important;
+  }
+
+  /* Improve spacing for print clarity */
+  .plan-card.print-target {
+    border: none !important;
+    padding: 0;
+    margin: 0;
+  }
+}

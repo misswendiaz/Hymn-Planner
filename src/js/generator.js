@@ -1,4 +1,9 @@
 import { createMoodSelect } from "./selectMoods.js";
+import { generateHymnPlan } from "./recommendationEngine.js";
+import { savePlan } from "./plansStorage.js";
+
+let currentPlan = null;
+let lastInput = null;
 
 // Renders the Generator page in the main
 export async function initGeneratorPage(root) {
@@ -11,7 +16,7 @@ export async function initGeneratorPage(root) {
     <!-- Topics -->
     <div class="topics">
       <label for="topic1">Topic 1</label>
-      <input id="topic1" placeholder="Topic 1" required>
+      <input id="topic1" placeholder="Topic 1">
       
       <label for="topic2">Topic 2</label>
       <input id="topic2" placeholder="Topic 2">
@@ -54,7 +59,7 @@ export async function initGeneratorPage(root) {
   const generateButton = root.querySelector("#generateButton");
 
   if (generateButton) {
-    generateButton.addEventListener("click", () => {
+    generateButton.addEventListener("click", async () => {
       const data = {
         topic1: root.querySelector("#topic1")?.value || "",
         topic2: root.querySelector("#topic2")?.value || "",
@@ -64,7 +69,64 @@ export async function initGeneratorPage(root) {
 
       console.log("Generate Payload: ", data);
 
+      lastInput = data;
+
       // Connect to hymn recommendation engine
+      const plan = await generateHymnPlan(data);
+      console.log("PLAN RESULT: ", plan);
+
+      currentPlan = plan;
+
+      // Render results
+      const getTitle = (h) => h?.title ?? "No match";
+      root.querySelector("#opening").textContent = getTitle(plan.opening);
+      root.querySelector("#sacrament").textContent = getTitle(plan.sacrament);
+      root.querySelector("#intermediate").textContent = getTitle(
+        plan.intermediate,
+      );
+      root.querySelector("#closing").textContent = getTitle(plan.closing);
+    });
+  }
+
+  // Handles the Save button click
+  const saveButton = root.querySelector("#saveButton");
+
+  if (saveButton) {
+    saveButton.addEventListener("click", () => {
+      // Prevent saving if nothing was generated yet
+      if (!currentPlan) {
+        console.warn("No plan to save yet.");
+        return;
+      }
+
+      const planToSave = {
+        id: `plan-${Date.now()}`,
+        createdAt: new Date().toISOString(),
+
+        // Store user inputs
+        input: lastInput,
+
+        // Stores generated hymns
+        hymns: {
+          opening: currentPlan.opening,
+          sacrament: currentPlan.sacrament,
+          intermediate: currentPlan.intermediate,
+          closing: currentPlan.closing,
+        },
+      };
+
+      savePlan(planToSave);
+
+      console.log("Saved Plan: ", planToSave);
+    });
+  }
+
+  // Handles the Print button click
+  const printButton = root.querySelector("#printButton");
+
+  if (printButton) {
+    printButton.addEventListener("click", () => {
+      window.print();
     });
   }
 }
