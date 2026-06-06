@@ -1,6 +1,5 @@
 import { initGeneratorPage } from "./generator.js";
 import { initPlansPage } from "./plans.js";
-import(initPlansPage);
 
 // Container for rendering pages/contents
 const root = document.querySelector("#content");

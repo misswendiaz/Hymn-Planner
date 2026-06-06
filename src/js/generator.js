@@ -10,42 +10,68 @@ export async function initGeneratorPage(root) {
   // Creates the page structure
   root.innerHTML = `
   <section class="generator">
-    <h1>Hymns Generator</h1>
+    <h1 class="page-title">Hymns Generator</h1>
 
-    <!-- INPUT PANEL -->
-    <!-- Topics -->
-    <div class="topics">
-      <label for="topic1">Topic 1</label>
-      <input id="topic1" placeholder="Topic 1">
+    <div class="generator">
       
-      <label for="topic2">Topic 2</label>
-      <input id="topic2" placeholder="Topic 2">
+      <div class="panel-card">
+
+      <!-- INPUT PANEL -->
+
+      <!-- Topics -->
+        <h2 class="card-title">Topics</>
+        <div class="topics">
+          <label for="topic1">Topic 1</label>
+          <input class="topics id="topic1" placeholder="Topic 1">
+
+          <label for="topic2">Topic 2</label>
+          <input class="topics id="topic2" placeholder="Topic 2">
+
+          <label for="topic3">Topic 3</label>
+          <input class="topics id="topic3" placeholder="Topic 3">
+        </div>
+        
+        <!-- Mood Dropdown -->
+        <div id="mood-container"></div>
+
+        <!-- Generate Hymns Button -->
+        <div class="generate-button">
+          <button id="generateButton">Generate Hymns</button>
+        </div>
+
+      </div>
+
       
-      <label for="topic3">Topic 3</label>
-      <input id="topic3" placeholder="Topic 3">
+
+      <div class="panel-card">
+
+        <!-- OUTPUT PANEL -->
+
+        <!-- Suggested Hymns -->
+        <div class="suggestions">
+
+          <h2 class="card-title">Hymn Suggestions</h2>
+
+          <div class="suggestions">
+            <p>Opening Hymn: <span id="opening"></span></p>
+            <p>Sacrament Hymn: <span id="sacrament"></span></p>
+            <p>Intermediate Hymn: <span id="intermediate"></span></p>
+            <p>Closing Hymn: <span id="closing"></span></p>
+          </div>
+
+          <!-- Actions -->
+
+          <div class="actions-bar">
+            <!-- Save Button -->
+            <button id="saveButton">Save</button>
+
+            <!-- Print Button -->
+            <button id="printButton">Print</button>
+          </div>
+
+        </div>
+      </div>
     </div>
-
-    <!-- Mood Dropdown -->
-    <div id="mood-container"></div>
-    
-    <!-- Generate Hymns Button -->
-    <button id="generateButton">Generate Hymns</button>
-
-    <!-- OUTPUT PANEL -->
-  <!-- Suggested Hymns -->
-  <div class="suggestions">
-    <h2>Hymn Suggestions</h2>
-    <p>Opening Hymn: <span id="opening"></span></p>
-    <p>Sacrament Hymn: <span id="sacrament"></span></p>
-    <p>Intermediate Hymn: <span id="intermediate"></span></p>
-    <p>Closing Hymn: <span id="closing"></span></p>
-
-    <!-- Save Button -->
-    <button id="saveButton">Save</button>
-
-    <!-- Print Button -->
-    <button id="printButton">Print</button>
-  </div>
 
   </section>`;
 

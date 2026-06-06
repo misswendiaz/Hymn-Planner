@@ -90,28 +90,33 @@ async function renderPlans(root) {
 
               <div class="actions">
                 <!-- Edit Toggle -->
-                <button data-action="edit" data-id="${plan.id}">✏️ ${isEditing ? "Editing" : "Edit"}</button>
+                <button data-action="edit" data-id="${plan.id}" aria-label="Edit Plan">
+                  <img src="./images/edit.svg" alt="Edit"/>
+                </button>
 
-                <!-- Save Icon -->
                 ${
                   isEditing
                     ? `
-                  <button data-action="save" data-id="${plan.id}">💾 Save</button>`
-                    : ""
-                }
+                  <!-- Save Icon -->
+                  <button data-action="save" data-id="${plan.id}" aria-label="Save Plan">
+                    <img src="./images/save.svg" alt="Save"/>
+                  </button>
 
-                <!-- Reset Icon -->
-                ${
-                  isEditing
-                    ? `
-                  <button data-action="reset" data-id="${plan.id}">🔄 Reset</button>`
+                  <!-- Reset Icon -->
+                  <button data-action="reset" data-id="${plan.id}" aria-label="Reset Changes">
+                    <img src="./images/reset.svg" alt="Reset"/>
+                  </button>`
                     : ""
                 }
 
                 <!-- Print Icon -->
-                <button data-action="print" data-id="${plan.id}">🖨 Print</button>
+                <button data-action="print" data-id="${plan.id}" aria-label="Print Plan">
+                  <img src="./images/print.svg" alt="Print"/>
+                </button>
 
-                <!-- Delete Icon --><button data-action="delete" data-id="${plan.id}">🗑 Delete</button>
+                <!-- Delete Icon --><button data-action="delete" data-id="${plan.id}" aria-label="Delete Plan">
+                  <img src="./images/delete.svg" alt="Delete"/>
+                </button>
               </div>
             </div>
 

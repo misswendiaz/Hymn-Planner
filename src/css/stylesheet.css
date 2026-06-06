@@ -1,32 +1,24 @@
 /* =========================================================
    GOOGLE FONTS (Typography System)
-   - Merriweather: headings / hymn titles
-   - Lato: UI / body text
 ========================================================= */
 
 @import url("https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Merriweather:wght@300;400;700&display=swap");
 
 /* =========================================================
-   DESIGN SYSTEM (CSS VARIABLES)
-   - Centralized theme control
-   - Makes future redesign easy
+   DESIGN SYSTEM (GLOBAL VARIABLES)
 ========================================================= */
 
 :root {
-  /* Backgrounds */
   --bg-primary: #fafaf7;
   --surface: #ffffff;
 
-  /* Text */
   --text-primary: #2e2e2e;
   --text-secondary: #4a4a4a;
   --text-muted: #5b5b5b;
 
-  /* Accents */
   --accent-primary: #c8a24a;
   --accent-secondary: #1e2a3a;
 
-  /* Borders */
   --border: #e6e2d9;
 }
 
@@ -39,20 +31,77 @@ body {
   padding: 0;
   background: var(--bg-primary);
   color: var(--text-primary);
-
   font-family: "Lato", sans-serif;
 }
 
-/* Global container spacing */
+/* global spacing */
 section {
   padding: 20px;
 }
 
 /* =========================================================
-   TYPOGRAPHY SYSTEM
+   HEADER
 ========================================================= */
 
-/* Hymn titles / headings */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 10px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.sitename {
+  font-family: "Merriweather", serif;
+  font-size: 25px;
+  font-weight: 700;
+  padding-bottom: 5px;
+  margin: 5px;
+}
+
+/* nav */
+nav ul {
+  display: flex;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+nav a {
+  display: block;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  text-decoration: none;
+  color: var(--text-primary);
+  background: var(--surface);
+  transition: 0.2s;
+}
+
+nav a:hover {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+
+/* =========================================================
+   TYPOGRAPHY
+========================================================= */
+
 h1,
 h2,
 h3 {
@@ -60,14 +109,12 @@ h3 {
   color: var(--text-primary);
 }
 
-/* Secondary text */
 p,
 label,
 span {
   color: var(--text-secondary);
 }
 
-/* Muted small text (timestamps, metadata later) */
 .muted {
   color: var(--text-muted);
   font-size: 0.9rem;
@@ -78,32 +125,158 @@ span {
 ========================================================= */
 
 .generator {
-  max-width: 800px;
-  margin: auto;
-  background: var(--surface);
-  padding: 20px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
+  max-width: 1100px;
+  margin: 0 auto;
+
+  /* FIX: stack title ABOVE grid */
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-/* Input layout */
+/* page title MUST be separate from grid */
+.page-title {
+  font-size: 28px;
+  margin: 0;
+}
+
+/* GRID ONLY (inner generator div) */
+.generator > .generator {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* =========================================================
+   PANEL CARD BASE
+========================================================= */
+
+.panel-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  padding: 20px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.card-title {
+  text-align: center;
+}
+
+.topics {
+  text-align: left;
+}
+
+/* =========================================================
+   INPUT PANEL
+========================================================= */
+
 .topics {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-bottom: 15px;
 }
 
 .topics input {
   padding: 8px;
   border: 1px solid var(--border);
-  border-radius: 4px;
-  font-family: "Lato", sans-serif;
+  border-radius: 6px;
 }
 
-/* Mood container spacing */
 #mood-container {
-  margin-bottom: 15px;
+  margin-top: 5px;
+}
+
+/* push button down */
+.generate-button {
+  margin-top: auto;
+}
+
+.generate-button button {
+  width: 100%;
+  padding: 12px;
+  font-weight: 600;
+}
+
+/* =========================================================
+   OUTPUT PANEL
+========================================================= */
+
+.suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* =========================================================
+   ACTION BAR 
+========================================================= */
+
+.actions,
+.actions-bar {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+
+  gap: 8px;
+  margin-top: 15px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.actions button,
+.actions-bar button {
+  flex: 1;
+  max-width: 120px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 10px;
+  border-radius: 6px;
+}
+
+/* icons */
+.actions button img,
+.actions-bar button img {
+  width: 18px;
+  height: 18px;
+}
+
+/* =========================================================
+   PLANS PAGE 
+========================================================= */
+
+.plans {
+  max-width: 1100px;
+  margin: auto;
+  padding: 20px;
+}
+
+#plansContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 15px;
+}
+
+/* plan card */
+.plan-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 15px;
+  background: var(--surface);
+  transition: 0.2s;
+}
+
+.plan-card:hover {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
 }
 
 /* =========================================================
@@ -121,91 +294,47 @@ button {
   background: var(--accent-secondary);
   color: white;
 
-  transition: 0.2s ease;
+  transition: 0.2s;
 }
 
-/* Primary action emphasis */
 button:hover {
   background: var(--accent-primary);
   color: var(--text-primary);
 }
 
-/* Save button override */
 #saveButton {
   background: var(--accent-primary);
   color: var(--text-primary);
 }
 
-/* Delete button (danger action) */
 .deleteButton {
   background: #b23a3a;
   color: white;
 }
 
 /* =========================================================
-   OUTPUT PANEL (GENERATOR RESULTS)
+   FOOTER
 ========================================================= */
 
-.suggestions {
-  margin-top: 20px;
-  padding-top: 15px;
-  border-top: 1px solid var(--border);
-}
-
-.suggestions p {
-  margin: 6px 0;
-}
-
-/* =========================================================
-   PLANS PAGE
-========================================================= */
-
-.plans {
-  max-width: 900px;
-  margin: auto;
-  background: var(--surface);
-  padding: 20px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-}
-
-/* Individual saved plan card */
-.plan-card {
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 15px;
-  margin-bottom: 15px;
-  background: var(--surface);
-}
-
-/* =========================================================
-   NAVIGATION (if used)
-========================================================= */
-
-nav {
+footer {
   display: flex;
-  gap: 12px;
-  padding: 10px;
-  background: var(--accent-secondary);
-}
-
-nav a {
-  color: white;
-  text-decoration: none;
+  justify-content: space-between;
+  padding: 10px 20px;
+  border-top: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--text-muted);
 }
 
 /* =========================================================
-   PRINT STYLES
+   PRINT MODE
 ========================================================= */
 
 @media print {
-  /* Hide UI controls */
-  .topics,
-  #mood-container,
-  #generateButton,
+  nav,
   #saveButton,
   #printButton,
-  nav {
+  .topics,
+  #mood-container {
     display: none !important;
   }
 
@@ -214,25 +343,24 @@ nav a {
     color: black;
   }
 
-  .suggestions,
-  .plan-card {
-    border: none !important;
-  }
-
-  /* Hide all plans by default */
   .plan-card {
     display: none !important;
   }
 
-  /* Only print selected plan */
   .plan-card.print-target {
     display: block !important;
-  }
-
-  /* Improve spacing for print clarity */
-  .plan-card.print-target {
-    border: none !important;
+    border: none;
     padding: 0;
     margin: 0;
+  }
+}
+
+/* =========================================================
+   MOBILE RESPONSIVE
+========================================================= */
+
+@media (max-width: 768px) {
+  .generator > .generator {
+    grid-template-columns: 1fr;
   }
 }
