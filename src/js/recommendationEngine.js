@@ -1,4 +1,6 @@
+import { expandTopics } from "./datamuseService.js";
 import { getHymns } from "./hymns.js";
+import { SACRAMENT_HYMN_IDS } from "./sacramentRegistry.js";
 import { SLOT_RULES } from "./slotRules.js";
 
 // Generate hymn recommendations for all the slots
@@ -9,29 +11,55 @@ export async function generateHymnPlan(userInput) {
   // Tracks used hymns to avoid duplicates
   const usedIds = new Set();
 
-  // Return structure hymn plan
+  // Extract base topics from user input
+  const baseTopics = [
+    userInput?.topic1,
+    userInput?.topic2,
+    userInput?.topic3,
+  ].filter(Boolean);
+
+  // Expand topics using Datamuse API
+  const expandedTopics = await expandTopics(baseTopics);
+
+  // Build enriched user input object
+  const enrichedInput = {
+    ...userInput,
+    expandedTopics: expandedTopics,
+  };
+
+  // Generate hymns per slot using scoring engine
   return {
-    opening: pickBestHymn(hymns, userInput, "opening", usedIds),
-    sacrament: pickBestHymn(hymns, userInput, "sacrament", usedIds),
-    intermediate: pickBestHymn(hymns, userInput, "intermediate", usedIds),
-    closing: pickBestHymn(hymns, userInput, "closing", usedIds),
+    opening: pickBestHymn(hymns, enrichedInput, "opening", usedIds),
+    sacrament: pickBestHymn(hymns, enrichedInput, "sacrament", usedIds),
+    intermediate: pickBestHymn(hymns, enrichedInput, "intermediate", usedIds),
+    closing: pickBestHymn(hymns, enrichedInput, "closing", usedIds),
   };
 }
 
 // Select best hymn for a given slot
 function pickBestHymn(hymns, userInput, slot, usedIds) {
+  // Load slot-specific scoring rules
   const rules = SLOT_RULES[slot];
 
+  // Makes sure slot exists
   if (!rules) {
     console.warn("[SlotRules] Invalid Slot: ", slot);
     return null;
   }
 
-  // Store scored hymns intead of picking immediately
+  // Build candidate pool
+  let pool = hymns;
+
+  // Hard filter for sacrament only
+  if (slot === "sacrament") {
+    pool = hymns.filter((hymn) => SACRAMENT_HYMN_IDS.has(hymn.id));
+  }
+
+  // Score all hymns in pool
   const scored = [];
 
-  for (const hymn of hymns) {
-    // Skip hymns used in another slot
+  for (const hymn of pool) {
+    // Prevent duplicate hymn usage across slots
     if (usedIds.has(hymn.id)) continue;
 
     const score = scoreHymn(hymn, userInput, rules);
@@ -42,7 +70,7 @@ function pickBestHymn(hymns, userInput, slot, usedIds) {
     scored.push({ hymn, score });
   }
 
-  // No candidate at all
+  // Handle empty results
   if (scored.length === 0) {
     console.warn("[Engine] No valid hymns for slot: ", slot);
     return null;
@@ -53,15 +81,17 @@ function pickBestHymn(hymns, userInput, slot, usedIds) {
 
   // Take TOP N candidates for randomness pool
   const TOP_N = 20;
-  const pool = scored.slice(0, TOP_N);
+  const topPool = scored.slice(0, TOP_N);
 
-  const finalPool = pool.length ? pool : scored;
+  const finalPool = topPool.length ? topPool : scored;
 
+  // Random selection from top candidates
   const selected =
     finalPool[Math.floor(Math.random() * finalPool.length)]?.hymn;
 
   if (!selected) return null;
 
+  // Mark hymn as used so it won't appear again
   usedIds.add(selected.id);
   return selected;
 }
@@ -91,19 +121,19 @@ function scoreHymn(hymn, userInput, rules) {
   const mood = normalize(hymn.mood);
 
   // Normalize user input topics
-  const inputTopics = [userInput.topic1, userInput.topic2, userInput.topic3]
+  const inputTopics = (userInput.expandedTopics || [])
     .filter((t) => typeof t === "string" && t.trim().length > 0)
     .map(normalize);
 
   const inputMood = normalize(userInput.mood);
 
-  // Topic Matching
+  // Topic matching
   for (const t of inputTopics) {
     if (containsMatch(topics, t)) score += rules.topicBoost;
     if (containsMatch(keywords, t)) score += rules.keywordBoost;
   }
 
-  // Slot-Specific Topic Bonus
+  // Slot-specific topic bonus
   if (Array.isArray(rules.topics)) {
     for (const t of rules.topics) {
       if (containsMatch(topics, t)) {
@@ -128,19 +158,16 @@ function scoreHymn(hymn, userInput, rules) {
 
   score += Math.min(moodScore, rules.moodBoost * 1.5);
 
-  // Sacrament Strict Filter
+  // Sacrament strict filter
   if (rules.strictMode) {
     const strictTopics = (rules.strictTopics || []).map(normalize);
 
-    const match = strictTopics.some(
-      (strict) =>
-        topics.some((t) => t.includes(strict)) ||
-        keywords.some((k) => k.includes(strict)),
+    const hasMatch = strictTopics.some(
+      (strict) => topics.includes(strict) || keywords.includes(strict),
     );
 
-    // Reject hymn not matching sacred constraints
-    if (!match) {
-      return -Infinity;
+    if (hasMatch) {
+      score += rules.moodBoost * 2;
     }
   }
 

@@ -19,16 +19,16 @@ export async function initGeneratorPage(root) {
       <!-- INPUT PANEL -->
 
       <!-- Topics -->
-        <h2 class="card-title">Topics</>
+        <h2 class="card-title">Topics</h2>
         <div class="topics">
           <label for="topic1">Topic 1</label>
-          <input class="topics id="topic1" placeholder="Topic 1">
+          <input class="topics" id="topic1" placeholder="Topic 1">
 
           <label for="topic2">Topic 2</label>
-          <input class="topics id="topic2" placeholder="Topic 2">
+          <input class="topics" id="topic2" placeholder="Topic 2">
 
           <label for="topic3">Topic 3</label>
-          <input class="topics id="topic3" placeholder="Topic 3">
+          <input class="topics" id="topic3" placeholder="Topic 3">
         </div>
         
         <!-- Mood Dropdown -->
@@ -99,6 +99,9 @@ export async function initGeneratorPage(root) {
 
       // Connect to hymn recommendation engine
       const plan = await generateHymnPlan(data);
+
+      console.log("CURRENT PLAN:", plan);
+      console.log("LAST INPUT:", data);
       console.log("PLAN RESULT: ", plan);
 
       currentPlan = plan;
@@ -140,6 +143,10 @@ export async function initGeneratorPage(root) {
           closing: currentPlan.closing,
         },
       };
+
+      console.log("CURRENT PLAN:", currentPlan);
+      console.log("LAST INPUT:", lastInput);
+      console.log("PLAN TO SAVE:", planToSave);
 
       savePlan(planToSave);
 
