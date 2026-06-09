@@ -1,4 +1,5 @@
 import { initGeneratorPage } from "./generator.js";
+import { initLibraryPage } from "./library.js";
 import { initPlansPage } from "./plans.js";
 
 // Container for rendering pages/contents
@@ -19,7 +20,7 @@ function router(page = "generator") {
     initGeneratorPage(root);
   } else if (page === "library") {
     // Library Page
-    // initLibraryPage(root);
+    initLibraryPage(root);
   } else if (page === "plans") {
     // Plans Page
     initPlansPage(root);

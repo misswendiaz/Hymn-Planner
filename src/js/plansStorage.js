@@ -28,12 +28,15 @@ export function updatePlan(updatedPlan) {
   const plans = getSavedPlans();
 
   const index = plans.findIndex((p) => p.id === updatedPlan.id);
+
+  // If not found, create
   if (index === -1) {
-    console.warn("Plan not found for update: ", updatedPlan.id);
-    return;
+    // Create new plan
+    plans.push(updatedPlan);
+  } else {
+    plans[index] = updatedPlan;
   }
 
-  plans[index] = updatedPlan;
   saveAllPlans(plans);
 }
 
