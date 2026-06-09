@@ -1,40 +1,71 @@
 import { getHymns } from "./hymns.js";
 import { getSavedPlans, updatePlan } from "./plansStorage.js";
+import { searchHymnVideo } from "./youtubeApi.js";
+import { queueYoutubeRequest } from "./youtubeQueue.js";
+
+/* =========================================================
+   OFFLINE MODE + ADAPTIVE CONTROL
+   ========================================================= */
+
+// Offline mode switch (UI + behavior toggle)
+let OFFLINE_MODE = false;
+
+// Make sure UI always reflects state safely
+function updateModeIndicator() {
+  const el = appRoot?.querySelector(".mode-indicator");
+  if (!el) return;
+
+  el.textContent = OFFLINE_MODE
+    ? "OFFLINE MODE (JSON ONLY)"
+    : "ONLINE MODE (YouTube enabled)";
+}
+
+// Adaptive fallback controller
+let youtubeFailureCount = 0;
+const FAILURE_THRESHOLD = 3;
+
+/* =========================================================
+   STATE
+   ========================================================= */
 
 let allHymns = [];
 let filteredHymns = [];
 let appRoot = null;
 
-// Current UI state
+// UI state
 let currentSearch = "";
 let currentFilterType = "all";
 let currentFilterValue = "";
 
-// Tracks expanded hymn details per card
+// Expanded UI state
 const expandedCards = new Set();
 
-// Initializes Library page
+// cache layer
+const youtubeCache = new Map();
+
+/* =========================================================
+   INIT
+   ========================================================= */
+
 export async function initLibraryPage(root) {
   appRoot = root;
 
-  // Load hymns from dataset
   allHymns = await getHymns();
   filteredHymns = [...allHymns];
 
-  // Build page layout
   root.innerHTML = `
     <section class="library">
 
-      <!-- HEADER -->
       <div class="library-header">
-        <h1 class="page-title">Hymn Library</h1>
+        <h1 class="page-title">Hymns Library</h1>
 
-        <!-- SEARCH TOOLBAR -->
+        <div class="mode-indicator">
+          ${OFFLINE_MODE ? "OFFLINE MODE (JSON ONLY)" : "ONLINE MODE (YouTube enabled)"}
+        </div>
+
         <div class="toolbar">
-
           <input id="searchInput" placeholder="Search by title or number..." />
 
-          <!-- FILTER TOOLBAR -->
           <select id="filterType">
             <option value="all">All</option>
             <option value="topic">Topic</option>
@@ -46,29 +77,28 @@ export async function initLibraryPage(root) {
 
           <button id="applyFilter">Apply</button>
           <button id="clearFilter">Clear</button>
-
         </div>
       </div>
 
-      <!-- HYMN GRID -->
       <div id="hymnGrid" class="hymn-grid"></div>
 
     </section>
   `;
 
-  // Bind events
   bindEvents(root);
 
   window.addEventListener("plans:updated", () => {
     renderHymns(appRoot);
   });
 
-  // Ensure modal exists once at startup
   ensureModal(root);
-
-  // Initial render
   renderHymns(root);
+  updateModeIndicator();
 }
+
+/* =========================================================
+   MODAL LOGIC
+   ========================================================= */
 
 function openUseModal(hymn) {
   ensureModal(appRoot);
@@ -81,7 +111,6 @@ function openUseModal(hymn) {
 
   title.textContent = `${hymn.number}. ${hymn.title}`;
 
-  // populate plans dropdown
   planSelect.innerHTML = `
     <option value="__new__">+ Create New Plan</option>
     ${plans
@@ -107,9 +136,7 @@ function bindModalActions(modal, hymn) {
   const slotSelect = modal.querySelector("#modalSlot");
   const planSelect = modal.querySelector("#modalPlan");
 
-  const close = () => {
-    modal.classList.add("hidden");
-  };
+  const close = () => modal.classList.add("hidden");
 
   confirmButton.onclick = () => {
     const slot = slotSelect.value;
@@ -129,9 +156,6 @@ function bindModalActions(modal, hymn) {
           closing: null,
         },
       };
-
-      const existingPlans = getSavedPlans();
-      existingPlans.push(targetPlan);
 
       updatePlan(targetPlan);
     } else {
@@ -161,7 +185,10 @@ function bindModalActions(modal, hymn) {
   cancelButton.onclick = close;
 }
 
-// Event binding
+/* =========================================================
+   EVENTS
+   ========================================================= */
+
 function bindEvents(root) {
   const searchInput = root.querySelector("#searchInput");
   const filterType = root.querySelector("#filterType");
@@ -169,28 +196,21 @@ function bindEvents(root) {
   const applyFilter = root.querySelector("#applyFilter");
   const clearFilter = root.querySelector("#clearFilter");
 
-  // Search handler
   searchInput.addEventListener("input", (e) => {
     currentSearch = e.target.value.toLowerCase();
     renderHymns(root);
   });
 
-  // Filter type handler
   filterType.addEventListener("change", (e) => {
     currentFilterType = e.target.value;
   });
 
-  // Filter value handler
   filterValue.addEventListener("input", (e) => {
     currentFilterValue = e.target.value.toLowerCase();
   });
 
-  // Apply filter
-  applyFilter.addEventListener("click", () => {
-    renderHymns(root);
-  });
+  applyFilter.addEventListener("click", () => renderHymns(root));
 
-  // Clear filter
   clearFilter.addEventListener("click", () => {
     currentSearch = "";
     currentFilterType = "all";
@@ -203,22 +223,24 @@ function bindEvents(root) {
     renderHymns(root);
   });
 
-  // Event delegation for hymn cards
   root.addEventListener("click", (e) => {
     const viewButton = e.target.closest("[data-action='view']");
     const useButton = e.target.closest("[data-action='use']");
+    const refreshButton = e.target.closest("[data-action='refresh']");
 
-    if (viewButton) {
-      toggleDetails(viewButton.dataset.id);
-    }
+    if (viewButton) toggleDetails(viewButton.dataset.id);
+    if (useButton) handleUseHymn(useButton.dataset.id);
 
-    if (useButton) {
-      handleUseHymn(useButton.dataset.id);
+    if (refreshButton) {
+      refreshYoutubeVideo(refreshButton.dataset.id);
     }
   });
 }
 
-// Inject modal
+/* =========================================================
+   MODAL INJECTION
+   ========================================================= */
+
 function ensureModal(root) {
   if (root.querySelector("#useModal")) return;
 
@@ -252,8 +274,47 @@ function ensureModal(root) {
   );
 }
 
-// Render hymn grid
-function renderHymns(root) {
+/* =========================================================
+   YOUTUBE RESOLUTION
+   ========================================================= */
+
+async function resolveYoutubeVideo(hymn, force = false) {
+  // Hard stop all API usage in offline mode
+  if (OFFLINE_MODE) return null;
+
+  const cached = youtubeCache.get(hymn.id);
+  if (cached && !force) return cached;
+
+  const query =
+    hymn.youtube_query ||
+    `${hymn.number} ${hymn.title} hymn piano accompaniment`;
+
+  try {
+    const result = await searchHymnVideo(query);
+    const videoId = result?.videoId || null;
+
+    youtubeCache.set(hymn.id, videoId);
+    return videoId;
+  } catch (err) {
+    console.warn("YouTube request failed: ", err);
+    // Treat only real API failures as failure signal
+    youtubeFailureCount++;
+
+    if (youtubeFailureCount >= FAILURE_THRESHOLD) {
+      OFFLINE_MODE = true;
+      updateModeIndicator();
+      console.warn("⚠️ Auto OFFLINE MODE triggered due to failures.");
+    }
+
+    return null;
+  }
+}
+
+/* =========================================================
+   RENDER
+   ========================================================= */
+
+async function renderHymns(root) {
   const container = root.querySelector("#hymnGrid");
 
   filteredHymns = allHymns.filter((hymn) => {
@@ -261,20 +322,22 @@ function renderHymns(root) {
       hymn.title.toLowerCase().includes(currentSearch) ||
       String(hymn.number).includes(currentSearch);
 
-    const matchesFilter = applyFilterLogic(hymn);
-
-    return matchesSearch && matchesFilter;
+    return matchesSearch && applyFilterLogic(hymn);
   });
 
   container.innerHTML = filteredHymns.map(renderHymnCard).join("");
+
+  setupVideoObservers();
 }
 
-// Filter
+/* =========================================================
+   FILTER LOGIC (UNCHANGED)
+   ========================================================= */
+
 function applyFilterLogic(hymn) {
   if (currentFilterType === "all") return true;
 
   const value = currentFilterValue.toLowerCase();
-
   if (!value) return true;
 
   if (currentFilterType === "topic") {
@@ -292,58 +355,40 @@ function applyFilterLogic(hymn) {
   return true;
 }
 
-// Hymn card rendering
+/* =========================================================
+   CARD RENDERING
+   ========================================================= */
+
 function renderHymnCard(hymn) {
   const isExpanded = expandedCards.has(hymn.id);
 
   return `
     <div class="hymn-card">
 
-      <!-- HEADER -->
       <div class="hymn-header">
         <h3>${hymn.number}. ${hymn.title}</h3>
       </div>
 
-      <!-- YOUTUBE VIDEO -->
-      <div class="video-container">
-        ${
-          hymn.youtubeId
-            ? `<iframe
-                src="https://www.youtube.com/embed/${hymn.youtubeId}"
-                frameborder="0"
-                allowfullscreen
-              ></iframe>`
-            : `<p class="muted">No video available</p>`
-        }
+      <div class="video-container" id="video-${hymn.id}">
+        <p class="muted">Loading accompaniment...</p>
       </div>
 
-      <!-- ACTION BUTTONS -->
       <div class="hymn-actions">
-        <button data-action="view" data-id="${hymn.id}">
-          View
-        </button>
+        <button data-action="view" data-id="${hymn.id}">View</button>
+        <button data-action="use" data-id="${hymn.id}">Use</button>
 
-        <button data-action="use" data-id="${hymn.id}">
-          Use
+        <button data-action="refresh" data-id="${hymn.id}">
+          Refresh Video
         </button>
       </div>
 
-      <!-- DETAILS PANEL -->
       ${
         isExpanded
           ? `
         <div class="hymn-details">
-
           <p><strong>Topics:</strong> ${(hymn.topics || []).join(", ")}</p>
           <p><strong>Keywords:</strong> ${(hymn.keywords || []).join(", ")}</p>
           <p><strong>Mood:</strong> ${hymn.mood || "-"}</p>
-
-          ${
-            hymn.scriptures
-              ? `<p><strong>Scriptures:</strong> ${hymn.scriptures}</p>`
-              : ""
-          }
-
         </div>
       `
           : ""
@@ -353,21 +398,127 @@ function renderHymnCard(hymn) {
   `;
 }
 
-// View details toggle
+/* =========================================================
+   UI HELPERS
+   ========================================================= */
+
 function toggleDetails(id) {
-  if (expandedCards.has(id)) {
-    expandedCards.delete(id);
-  } else {
-    expandedCards.add(id);
-  }
+  if (expandedCards.has(id)) expandedCards.delete(id);
+  else expandedCards.add(id);
 
   renderHymns(appRoot);
 }
 
-// Use hymn
 function handleUseHymn(hymnId) {
   const hymn = allHymns.find((h) => h.id === hymnId);
   if (!hymn) return;
 
   openUseModal(hymn);
+}
+
+/* =========================================================
+   VIDEO LOADING
+   ========================================================= */
+
+function loadVideoForCard(hymn) {
+  const container = document.querySelector(`#video-${hymn.id}`);
+  if (!container) return;
+
+  // FIX: offline mode hard stop
+  if (OFFLINE_MODE) {
+    container.innerHTML = `<p class="muted">Video disabled (offline mode)</p>`;
+    return;
+  }
+
+  const cached = youtubeCache.get(hymn.id);
+
+  if (cached !== undefined && cached !== null) {
+    renderVideo(container, cached);
+    return;
+  }
+
+  if (cached === null) {
+    container.innerHTML = `<p class="muted">No video available</p>`;
+    return;
+  }
+
+  queueYoutubeRequest(hymn, (videoId) => {
+    // Adaptive failure tracking
+    if (!videoId) youtubeFailureCount++;
+    else youtubeFailureCount = 0;
+
+    if (youtubeFailureCount >= FAILURE_THRESHOLD) {
+      OFFLINE_MODE = true;
+      updateModeIndicator();
+      console.warn("⚠️ Auto OFFLINE MODE triggered.");
+    }
+
+    youtubeCache.set(hymn.id, videoId);
+    renderVideo(container, videoId);
+  });
+}
+
+/* =========================================================
+   RENDER VIDEO
+   ========================================================= */
+
+function renderVideo(container, videoId) {
+  container.innerHTML = videoId
+    ? `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`
+    : `<p class="muted">No video available</p>`;
+}
+
+/* =========================================================
+   REFRESH (SAFE)
+   ========================================================= */
+
+async function refreshYoutubeVideo(hymnId) {
+  const hymn = allHymns.find((h) => h.id === hymnId);
+  if (!hymn) return;
+
+  const container = document.querySelector(`#video-${hymn.id}`);
+  if (!container) return;
+
+  if (OFFLINE_MODE) {
+    container.innerHTML = `<p class="muted">Offline mode enabled</p>`;
+    return;
+  }
+
+  container.innerHTML = `<p class="muted">Searching new video...</p>`;
+
+  const videoId = await resolveYoutubeVideo(hymn, true);
+
+  container.innerHTML = videoId
+    ? `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`
+    : `<p class="muted">No video found</p>`;
+}
+
+/* =========================================================
+   OBSERVER
+   ========================================================= */
+
+function setupVideoObservers() {
+  const observer = new IntersectionObserver(
+    (entries, obs) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+
+        const el = entry.target;
+        const hymnId = el.dataset.hymnId;
+
+        const hymn = allHymns.find((h) => h.id === hymnId);
+        if (!hymn) return;
+
+        loadVideoForCard(hymn);
+
+        obs.unobserve(el);
+      });
+    },
+    { rootMargin: "200px" },
+  );
+
+  document.querySelectorAll(".video-container").forEach((el) => {
+    el.dataset.hymnId = el.id.replace("video-", "");
+    observer.observe(el);
+  });
 }
