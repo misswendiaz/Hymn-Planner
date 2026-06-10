@@ -34,7 +34,6 @@ body {
   font-family: "Lato", sans-serif;
 }
 
-/* global spacing */
 section {
   padding: 20px;
 }
@@ -47,7 +46,6 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-
   padding: 10px 20px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
@@ -69,11 +67,13 @@ header {
   font-family: "Merriweather", serif;
   font-size: 25px;
   font-weight: 700;
-  padding-bottom: 5px;
   margin: 5px;
 }
 
-/* nav */
+/* =========================================================
+   NAV
+========================================================= */
+
 nav ul {
   display: flex;
   gap: 8px;
@@ -95,7 +95,6 @@ nav a {
 
 nav a:hover {
   background: var(--accent-primary);
-  border-color: var(--accent-primary);
 }
 
 /* =========================================================
@@ -106,7 +105,6 @@ h1,
 h2,
 h3 {
   font-family: "Merriweather", serif;
-  color: var(--text-primary);
 }
 
 p,
@@ -121,7 +119,7 @@ span {
 }
 
 /* =========================================================
-   GENERATOR PAGE
+   GENERATOR PAGE (FIXED BUTTON CENTERING)
 ========================================================= */
 
 .generator {
@@ -132,19 +130,26 @@ span {
   gap: 20px;
 }
 
-.page-title {
-  font-size: 28px;
-  margin: 0;
-}
-
 .generator > .generator {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
 }
 
+/* CENTERED GENERATE BUTTON (FIXED) */
+.generate-button {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.generate-button button {
+  width: 80%;
+  max-width: 420px;
+}
+
 /* =========================================================
-   PANEL CARD BASE
+   PANEL CARD
 ========================================================= */
 
 .panel-card {
@@ -152,20 +157,13 @@ span {
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 20px;
-
   display: flex;
   flex-direction: column;
   gap: 12px;
-
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-
-.card-title {
-  text-align: center;
 }
 
 /* =========================================================
-   INPUT PANEL
+   INPUTS
 ========================================================= */
 
 .topics {
@@ -174,47 +172,31 @@ span {
   gap: 10px;
 }
 
-.topics input {
+.topics input,
+.toolbar input,
+.toolbar select {
   padding: 8px;
   border: 1px solid var(--border);
   border-radius: 6px;
 }
 
-#mood-container {
-  margin-top: 5px;
-}
-
-.generate-button {
-  margin-top: auto;
-}
-
-.generate-button button {
-  width: 100%;
-  padding: 12px;
-  font-weight: 600;
+.topics input:focus,
+.toolbar input:focus,
+.toolbar select:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(200, 162, 74, 0.25);
+  outline: none;
 }
 
 /* =========================================================
-   OUTPUT PANEL
-========================================================= */
-
-.suggestions {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-/* =========================================================
-   ACTION BAR
+   ACTION SYSTEM (FIXED DISTRIBUTION)
 ========================================================= */
 
 .actions,
 .actions-bar {
   display: flex;
-  justify-content: space-evenly;
-  align-items: center;
-
-  gap: 8px;
+  justify-content: space-between;
+  gap: 12px;
   margin-top: 15px;
   padding-top: 12px;
   border-top: 1px solid var(--border);
@@ -223,25 +205,13 @@ span {
 .actions button,
 .actions-bar button {
   flex: 1;
-  max-width: 120px;
-
   display: flex;
   justify-content: center;
   align-items: center;
-
-  padding: 10px;
-  border-radius: 6px;
-}
-
-/* icons */
-.actions button img,
-.actions-bar button img {
-  width: 18px;
-  height: 18px;
 }
 
 /* =========================================================
-   PLANS PAGE
+   PLANS PAGE (FIXED ICON LAYOUT)
 ========================================================= */
 
 .plans {
@@ -256,21 +226,49 @@ span {
   gap: 15px;
 }
 
-/* plan card */
 .plan-card {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 15px;
   background: var(--surface);
-  transition: 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.plan-card:hover {
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+/* ACTION ICON BAR FIX */
+.plan-card .actions-bar {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  gap: 10px;
+}
+
+.plan-card .actions-bar button {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* FORCE ICON VISIBILITY */
+.plan-card img {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+}
+
+/* EDIT MODE FIX */
+.plan-card.edit-mode .actions-bar {
+  display: flex !important;
+}
+
+.plan-card.edit-mode button {
+  display: flex !important;
 }
 
 /* =========================================================
-   LIBRARY PAGE (NEW)
+   LIBRARY PAGE (FIXED FLIP SYSTEM)
 ========================================================= */
 
 .library {
@@ -282,14 +280,12 @@ span {
   gap: 20px;
 }
 
-/* HEADER + TOOLBARS WRAPPER */
 .library-header {
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
 
-/* TOOLBAR CONTAINER (SEARCH + FILTER GROUPED) */
 .toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -298,133 +294,78 @@ span {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
-  align-items: center;
 }
 
-.toolbar input,
-.toolbar select {
-  padding: 8px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-}
-
-/* LIBRARY GRID */
+/* GRID */
 .hymn-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 15px;
 }
 
-/* HYMN CARD */
+/* CARD ROOT */
 .hymn-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 15px;
+  perspective: 1000px;
+}
 
+/* FLIP SYSTEM (ONLY INNER ROTATES) */
+.flip-inner {
+  position: relative;
+  min-height: 320px;
+  transform-style: preserve-3d;
+  transition: transform 0.6s ease;
+}
+
+.hymn-card.flipped .flip-inner {
+  transform: rotateY(180deg);
+}
+
+/* FRONT / BACK */
+.flip-front,
+.flip-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
   display: flex;
   flex-direction: column;
   gap: 12px;
-
-  transition: 0.2s;
 }
 
+.flip-back {
+  transform: rotateY(180deg);
+}
+
+/* SAFE HOVER */
 .hymn-card:hover {
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  transform: translateY(-4px);
+  transition: transform 0.2s ease;
 }
 
-/* VIDEO */
+/* =========================================================
+   VIDEO
+========================================================= */
+
 .video-container iframe {
   width: 100%;
   height: 180px;
   border-radius: 6px;
 }
 
-/* HYMN ACTIONS */
-.hymn-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.hymn-actions button {
-  flex: 1;
-  padding: 8px;
-  border-radius: 6px;
-}
-
-/* HYMN DETAILS */
-.hymn-details {
-  border-top: 1px solid var(--border);
-  padding-top: 10px;
-}
-
 /* =========================================================
-   MODAL (USE HYMNS DIALOG)
-========================================================= */
-
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 9999;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  background: rgba(0, 0, 0, 0.5);
-}
-
-.modal.hidden {
-  display: none;
-}
-
-.modal-content {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-
-  padding: 20px;
-  width: 400px;
-  max-width: 90%;
-
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.modal-content select,
-.modal-content button {
-  width: 100%;
-  padding: 10px;
-  border-radius: 6px;
-}
-
-.modal-content h2 {
-  margin: 0;
-}
-
-.modal-content label {
-  font-weight: 600;
-}
-
-/* =========================================================
-   BUTTON SYSTEM
+   BUTTON BASE
 ========================================================= */
 
 button {
   padding: 10px 14px;
   border: none;
   border-radius: 4px;
-
   cursor: pointer;
-  font-family: "Lato", sans-serif;
-
   background: var(--accent-secondary);
   color: white;
-
   transition: 0.2s;
 }
 
@@ -433,60 +374,40 @@ button:hover {
   color: var(--text-primary);
 }
 
-#saveButton {
-  background: var(--accent-primary);
-  color: var(--text-primary);
-}
-
-.deleteButton {
-  background: #b23a3a;
-  color: white;
+button:active {
+  transform: scale(0.96);
 }
 
 /* =========================================================
-   FOOTER
+   MODAL
 ========================================================= */
 
-footer {
+.modal {
+  position: fixed;
+  inset: 0;
   display: flex;
-  justify-content: space-between;
-  padding: 10px 20px;
-  border-top: 1px solid var(--border);
-  font-size: 14px;
-  color: var(--text-muted);
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.25s;
+}
+
+.modal:not(.hidden) {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-content {
+  background: var(--surface);
+  padding: 20px;
+  border-radius: 10px;
+  width: 400px;
 }
 
 /* =========================================================
-   PRINT MODE
-========================================================= */
-
-@media print {
-  nav,
-  #generateButton,
-  #saveButton,
-  #printButton {
-    display: none !important;
-  }
-
-  body {
-    background: white;
-    color: black;
-  }
-
-  .plan-card {
-    display: none !important;
-  }
-
-  .plan-card.print-target {
-    display: block !important;
-    border: none;
-    padding: 0;
-    margin: 0;
-  }
-}
-
-/* =========================================================
-   MOBILE RESPONSIVE
+   MOBILE
 ========================================================= */
 
 @media (max-width: 768px) {

@@ -110,30 +110,58 @@ const containsMatch = (list, query) => {
 
 // Computes how well a hymn matches
 function scoreHymn(hymn, userInput, rules) {
-  // Prevents crash when userInput is undefined
   userInput = userInput || {};
 
   let score = 0;
 
-  // Normalize hymn metadata for comparison
-  const topics = (hymn.topics || []).map(normalize);
-  const keywords = (hymn.keywords || []).map(normalize);
+  /* =========================================================
+     SAFE NORMALIZATION (CRITICAL FIX)
+     Handles BOTH:
+     - array format (old)
+     - string format (current Google Sheets export)
+     ========================================================= */
+
+  const normalizeList = (value) => {
+    if (!value) return [];
+
+    if (Array.isArray(value)) {
+      return value.map(normalize);
+    }
+
+    if (typeof value === "string") {
+      return value
+        .split(",")
+        .map((v) => v.trim())
+        .filter(Boolean)
+        .map(normalize);
+    }
+
+    return [];
+  };
+
+  const topics = normalizeList(hymn.topics);
+  const keywords = normalizeList(hymn.keywords);
   const mood = normalize(hymn.mood);
 
-  // Normalize user input topics
+  /* =========================================================
+     USER INPUT NORMALIZATION
+     ========================================================= */
+
   const inputTopics = (userInput.expandedTopics || [])
     .filter((t) => typeof t === "string" && t.trim().length > 0)
     .map(normalize);
 
   const inputMood = normalize(userInput.mood);
 
-  // Topic matching
+  /* =========================================================
+     SCORING LOGIC (UNCHANGED)
+     ========================================================= */
+
   for (const t of inputTopics) {
     if (containsMatch(topics, t)) score += rules.topicBoost;
     if (containsMatch(keywords, t)) score += rules.keywordBoost;
   }
 
-  // Slot-specific topic bonus
   if (Array.isArray(rules.topics)) {
     for (const t of rules.topics) {
       if (containsMatch(topics, t)) {
@@ -142,7 +170,6 @@ function scoreHymn(hymn, userInput, rules) {
     }
   }
 
-  // Mood-Matching
   let moodScore = 0;
 
   const preferredMatch = rules.preferredMoods?.includes(mood);
@@ -158,7 +185,6 @@ function scoreHymn(hymn, userInput, rules) {
 
   score += Math.min(moodScore, rules.moodBoost * 1.5);
 
-  // Sacrament strict filter
   if (rules.strictMode) {
     const strictTopics = (rules.strictTopics || []).map(normalize);
 
@@ -171,11 +197,10 @@ function scoreHymn(hymn, userInput, rules) {
     }
   }
 
-  // Small randomness to prevent identical results
   score += Math.random() * 8;
 
   if (import.meta.env?.DEV) {
-    console.log("[Score]: ", hymn.title, score);
+    console.log("[Score]:", hymn.title, score);
   }
 
   return score;

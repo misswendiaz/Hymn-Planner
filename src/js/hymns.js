@@ -1,38 +1,73 @@
-// Cache to avoid repeated network requests
+/* =========================================================
+   CACHE (prevents repeated network requests)
+   ========================================================= */
+
 let hymnsCache = null;
 
-// Fetches hymn dataset from JSON file
+/* =========================================================
+   MAIN DATA FETCH FUNCTION
+   ========================================================= */
+
 export async function getHymns() {
-  // Return cached version if already loaded
+  // If already loaded, return cached version immediately
   if (hymnsCache) return hymnsCache;
 
-  // BASE_URL is required for correct routing in Vite deployments
+  // Vite base path ensures correct deployment routing
   const BASE = import.meta.env.BASE_URL;
 
   try {
-    // Fetch hymn dataset from hymns.json
+    /* -----------------------------------------------------
+       STEP 1: FETCH JSON FILE
+    ----------------------------------------------------- */
     const response = await fetch(`${BASE}json/hymns.json`);
 
-    // Handle HTTP errors
+    // Fail fast if HTTP request fails
     if (!response.ok) {
       throw new Error(`Failed to load hymns.json (HTTP ${response.status})`);
     }
 
-    // Parse JSON response
+    /* -----------------------------------------------------
+       STEP 2: PARSE JSON
+    ----------------------------------------------------- */
     const data = await response.json();
 
-    // Validate structure before using it
-    if (!data || !Array.isArray(data.hymns)) {
-      throw new Error("Invalid hymns.json format: expected { hymns: [] }");
+    /* -----------------------------------------------------
+       STEP 3: NORMALIZE DATA FORMAT
+       Supports TWO possible structures:
+
+       A) Preferred:
+          { hymns: [...] }
+
+       B) Direct array:
+          [...]
+    ----------------------------------------------------- */
+    const hymnsArray = Array.isArray(data) ? data : data?.hymns;
+
+    /* -----------------------------------------------------
+       STEP 4: VALIDATION
+       Ensures dataset is usable before rendering app
+    ----------------------------------------------------- */
+    if (!Array.isArray(hymnsArray)) {
+      console.error("Invalid JSON structure received:", data);
+
+      throw new Error(
+        "Invalid hymns.json format: expected array or { hymns: [] }",
+      );
     }
 
-    // Freeze array to prevent accidental mutation
-    hymnsCache = Object.freeze([...data.hymns]);
+    /* -----------------------------------------------------
+       STEP 5: IMMUTABLE CACHE STORAGE
+       Prevents accidental runtime modification of dataset
+    ----------------------------------------------------- */
+    hymnsCache = Object.freeze([...hymnsArray]);
 
     return hymnsCache;
   } catch (error) {
-    // Centralized error logging for debugging
-    console.error("Hymn loading error: ", error);
+    /* -----------------------------------------------------
+       CENTRALIZED ERROR HANDLING
+       Helps debug deployment vs local issues
+    ----------------------------------------------------- */
+    console.error("Hymn loading error:", error);
     throw error;
   }
 }

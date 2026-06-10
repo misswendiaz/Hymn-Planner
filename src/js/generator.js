@@ -4,162 +4,164 @@ import { savePlan } from "./plansStorage.js";
 
 let currentPlan = null;
 let lastInput = null;
+let isGenerating = false;
 
-// Renders the Generator page in the main
+/* =========================================================
+   INIT
+   ========================================================= */
+
 export async function initGeneratorPage(root) {
-  // Creates the page structure
   root.innerHTML = `
   <section class="generator">
     <h1 class="page-title">Hymns Generator</h1>
 
     <div class="generator">
-      
+
       <div class="panel-card">
 
-      <!-- INPUT PANEL -->
-
-      <!-- Topics -->
         <h2 class="card-title">Topics</h2>
+
         <div class="topics">
-          <label for="topic1">Topic 1</label>
-          <input class="topics" id="topic1" placeholder="Topic 1">
+          <label>Topic 1</label>
+          <input id="topic1" placeholder="Topic 1">
 
-          <label for="topic2">Topic 2</label>
-          <input class="topics" id="topic2" placeholder="Topic 2">
+          <label>Topic 2</label>
+          <input id="topic2" placeholder="Topic 2">
 
-          <label for="topic3">Topic 3</label>
-          <input class="topics" id="topic3" placeholder="Topic 3">
+          <label>Topic 3</label>
+          <input id="topic3" placeholder="Topic 3">
         </div>
-        
-        <!-- Mood Dropdown -->
+
         <div id="mood-container"></div>
 
-        <!-- Generate Hymns Button -->
         <div class="generate-button">
           <button id="generateButton">Generate Hymns</button>
         </div>
 
       </div>
 
-      
-
       <div class="panel-card">
 
-        <!-- OUTPUT PANEL -->
+        <h2 class="card-title">Hymn Suggestions</h2>
 
-        <!-- Suggested Hymns -->
         <div class="suggestions">
-
-          <h2 class="card-title">Hymn Suggestions</h2>
-
-          <div class="suggestions">
-            <p>Opening Hymn: <span id="opening"></span></p>
-            <p>Sacrament Hymn: <span id="sacrament"></span></p>
-            <p>Intermediate Hymn: <span id="intermediate"></span></p>
-            <p>Closing Hymn: <span id="closing"></span></p>
-          </div>
-
-          <!-- Actions -->
-
-          <div class="actions-bar">
-            <!-- Save Button -->
-            <button id="saveButton">Save</button>
-
-            <!-- Print Button -->
-            <button id="printButton">Print</button>
-          </div>
-
+          <p>Opening: <span id="opening"></span></p>
+          <p>Sacrament: <span id="sacrament"></span></p>
+          <p>Intermediate: <span id="intermediate"></span></p>
+          <p>Closing: <span id="closing"></span></p>
         </div>
+
+        <div class="actions-bar">
+          <button id="saveButton">Save</button>
+          <button id="printButton">Print</button>
+        </div>
+
       </div>
     </div>
-
   </section>`;
 
-  // Mood selection injection
-  const moodContainer = root.querySelector("#mood-container");
-  if (moodContainer) {
-    moodContainer.innerHTML = await createMoodSelect("mood", "Select Mood");
-  }
+  /* =========================================================
+     MOOD SELECT
+     ========================================================= */
 
-  // Handles the Generate Hymns button click
+  const moodContainer = root.querySelector("#mood-container");
+  moodContainer.innerHTML = await createMoodSelect("mood", "Select Mood");
+
+  /* =========================================================
+     GENERATE BUTTON
+     ========================================================= */
+
   const generateButton = root.querySelector("#generateButton");
 
-  if (generateButton) {
-    generateButton.addEventListener("click", async () => {
-      const data = {
-        topic1: root.querySelector("#topic1")?.value || "",
-        topic2: root.querySelector("#topic2")?.value || "",
-        topic3: root.querySelector("#topic3")?.value || "",
-        mood: root.querySelector("#mood")?.value || "",
-      };
+  generateButton.addEventListener("click", async () => {
+    if (isGenerating) return;
 
-      console.log("Generate Payload: ", data);
+    isGenerating = true;
+    generateButton.textContent = "Generating...";
+
+    try {
+      const data = {
+        topic1: root.querySelector("#topic1")?.value?.trim() || "",
+        topic2: root.querySelector("#topic2")?.value?.trim() || "",
+        topic3: root.querySelector("#topic3")?.value?.trim() || "",
+        mood: root.querySelector("#mood")?.value?.trim() || "",
+      };
 
       lastInput = data;
 
-      // Connect to hymn recommendation engine
       const plan = await generateHymnPlan(data);
 
-      console.log("CURRENT PLAN:", plan);
-      console.log("LAST INPUT:", data);
-      console.log("PLAN RESULT: ", plan);
+      console.log("RAW PLAN:", plan);
 
-      currentPlan = plan;
+      /* =========================================================
+         SAFETY NORMALIZATION (CRITICAL FIX)
+         ========================================================= */
 
-      // Render results
-      const getTitle = (h) => h?.title ?? "No match";
-      root.querySelector("#opening").textContent = getTitle(plan.opening);
-      root.querySelector("#sacrament").textContent = getTitle(plan.sacrament);
-      root.querySelector("#intermediate").textContent = getTitle(
-        plan.intermediate,
-      );
-      root.querySelector("#closing").textContent = getTitle(plan.closing);
-    });
-  }
-
-  // Handles the Save button click
-  const saveButton = root.querySelector("#saveButton");
-
-  if (saveButton) {
-    saveButton.addEventListener("click", () => {
-      // Prevent saving if nothing was generated yet
-      if (!currentPlan) {
-        console.warn("No plan to save yet.");
-        return;
-      }
-
-      const planToSave = {
-        id: `plan-${Date.now()}`,
-        createdAt: new Date().toISOString(),
-
-        // Store user inputs
-        input: lastInput,
-
-        // Stores generated hymns
-        hymns: {
-          opening: currentPlan.opening,
-          sacrament: currentPlan.sacrament,
-          intermediate: currentPlan.intermediate,
-          closing: currentPlan.closing,
-        },
+      currentPlan = {
+        opening: plan?.opening ?? null,
+        sacrament: plan?.sacrament ?? null,
+        intermediate: plan?.intermediate ?? null,
+        closing: plan?.closing ?? null,
       };
 
-      console.log("CURRENT PLAN:", currentPlan);
-      console.log("LAST INPUT:", lastInput);
-      console.log("PLAN TO SAVE:", planToSave);
+      const getTitle = (h) => h?.title ?? "No match";
 
-      savePlan(planToSave);
+      root.querySelector("#opening").textContent = getTitle(
+        currentPlan.opening,
+      );
+      root.querySelector("#sacrament").textContent = getTitle(
+        currentPlan.sacrament,
+      );
+      root.querySelector("#intermediate").textContent = getTitle(
+        currentPlan.intermediate,
+      );
+      root.querySelector("#closing").textContent = getTitle(
+        currentPlan.closing,
+      );
+    } catch (err) {
+      console.error("Generation failed:", err);
+      alert("Failed to generate hymn plan. Check console.");
+    } finally {
+      isGenerating = false;
+      generateButton.textContent = "Generate Hymns";
+    }
+  });
 
-      console.log("Saved Plan: ", planToSave);
-    });
-  }
+  /* =========================================================
+     SAVE BUTTON
+     ========================================================= */
 
-  // Handles the Print button click
-  const printButton = root.querySelector("#printButton");
+  const saveButton = root.querySelector("#saveButton");
 
-  if (printButton) {
-    printButton.addEventListener("click", () => {
-      window.print();
-    });
-  }
+  saveButton.addEventListener("click", () => {
+    if (!currentPlan) {
+      alert("No generated plan to save yet.");
+      return;
+    }
+
+    const planToSave = {
+      id: `plan-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      input: lastInput || {},
+
+      hymns: {
+        opening: currentPlan.opening?.id ?? null,
+        sacrament: currentPlan.sacrament?.id ?? null,
+        intermediate: currentPlan.intermediate?.id ?? null,
+        closing: currentPlan.closing?.id ?? null,
+      },
+    };
+
+    console.log("Saving Plan:", planToSave);
+
+    savePlan(planToSave);
+  });
+
+  /* =========================================================
+     PRINT BUTTON
+     ========================================================= */
+
+  root.querySelector("#printButton").addEventListener("click", () => {
+    window.print();
+  });
 }

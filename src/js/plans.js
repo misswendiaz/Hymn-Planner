@@ -148,10 +148,26 @@ function filterHymnsBySlot(hymns, slot) {
   if (!rules) return hymns;
 
   return hymns.filter((hymn) => {
-    const topics = (hymn.topics || []).map((t) => t.toLowerCase());
-    const keywords = (hymn.keywords || []).map((k) => k.toLowerCase());
+    /*
+     * Google Sheet export stores topics and keywords
+     * as comma-separated strings:
+     *
+     * "faith, prayer, jesus christ"
+     *
+     * Convert them back into arrays before filtering.
+     */
 
-    // Sacrament strict filter
+    const topics = String(hymn.topics || "")
+      .split(",")
+      .map((t) => t.trim().toLowerCase())
+      .filter(Boolean);
+
+    const keywords = String(hymn.keywords || "")
+      .split(",")
+      .map((k) => k.trim().toLowerCase())
+      .filter(Boolean);
+
+    // Sacrament hymn rules
     if (slot === "sacrament") {
       const strict = (rules.strictTopics || []).map((s) => s.toLowerCase());
 
@@ -162,11 +178,13 @@ function filterHymnsBySlot(hymns, slot) {
       );
     }
 
-    // Other slots
+    // Opening / Intermediate / Closing rules
     const allTags = [...topics, ...keywords];
+
     return (rules.topics || []).some((t) => {
-      const normT = t.toLowerCase();
-      return allTags.some((tag) => tag.includes(normT));
+      const normalizedTopic = t.toLowerCase();
+
+      return allTags.some((tag) => tag.includes(normalizedTopic));
     });
   });
 }
