@@ -379,6 +379,26 @@ button:active {
 }
 
 /* =========================================================
+   LIBRARY ACTION BUTTONS (FIX)
+========================================================= */
+
+.hymn-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.hymn-actions button {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+}
+
+/* =========================================================
    MODAL
 ========================================================= */
 
@@ -407,11 +427,60 @@ button:active {
 }
 
 /* =========================================================
+   VIEW MODAL BUTTON LAYOUT FIX
+========================================================= */
+
+.modal-content button {
+  width: 100%;
+}
+
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* group bottom actions */
+.modal-content button + button {
+  margin-top: 0;
+}
+
+/* =========================================================
    MOBILE
 ========================================================= */
 
 @media (max-width: 768px) {
   .generator > .generator {
     grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
+   PRINT MODE
+========================================================= */
+
+@media print {
+  nav,
+  #generateButton,
+  #saveButton,
+  #printButton,
+  footer {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+    color: black;
+  }
+
+  .plan-card {
+    display: none !important;
+  }
+
+  .plan-card.print-target {
+    display: block !important;
+    border: none;
+    padding: 0;
+    margin: 0;
   }
 }

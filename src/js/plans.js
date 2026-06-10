@@ -311,6 +311,8 @@ function printPlan(id) {
   const target = document.querySelector(`[data-plan="${id}"]`);
   if (!target) return;
 
+  document.body.classList.add("print-single-plan");
+
   document
     .querySelectorAll(".plan-card")
     .forEach((el) => el.classList.remove("print-target"));
@@ -319,6 +321,5 @@ function printPlan(id) {
 
   setTimeout(() => {
     window.print();
-    target.classList.remove("print-target");
   }, 50);
 }
