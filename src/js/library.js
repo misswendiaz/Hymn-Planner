@@ -1,6 +1,6 @@
 import { getHymns } from "./hymns.js";
 import { getSavedPlans, updatePlan } from "./plansStorage.js";
-import { searchHymnVideo } from "./youtubeApi.js";
+import { searchHymnVideo } from "./youtubeAPI.js";
 
 /* =========================================================
    STATE
