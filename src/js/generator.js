@@ -94,7 +94,7 @@ export async function initGeneratorPage(root) {
       console.log("RAW PLAN:", plan);
 
       /* =========================================================
-         SAFETY NORMALIZATION (CRITICAL FIX)
+         SAFETY NORMALIZATION
          ========================================================= */
 
       currentPlan = {

@@ -11,7 +11,6 @@ export function queueYoutubeRequest(hymn, onResult) {
   processQueue();
 }
 
-// Worker
 async function processQueue() {
   if (isProcessing) return;
   isProcessing = true;

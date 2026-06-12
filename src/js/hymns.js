@@ -17,7 +17,7 @@ export async function getHymns() {
 
   try {
     /* -----------------------------------------------------
-       STEP 1: FETCH JSON FILE
+       FETCH JSON FILE
     ----------------------------------------------------- */
     const response = await fetch(`${BASE}json/hymns.json`);
 
@@ -27,24 +27,17 @@ export async function getHymns() {
     }
 
     /* -----------------------------------------------------
-       STEP 2: PARSE JSON
+       PARSE JSON
     ----------------------------------------------------- */
     const data = await response.json();
 
     /* -----------------------------------------------------
-       STEP 3: NORMALIZE DATA FORMAT
-       Supports TWO possible structures:
-
-       A) Preferred:
-          { hymns: [...] }
-
-       B) Direct array:
-          [...]
+       NORMALIZE DATA FORMAT
     ----------------------------------------------------- */
     const hymnsArray = Array.isArray(data) ? data : data?.hymns;
 
     /* -----------------------------------------------------
-       STEP 4: VALIDATION
+       VALIDATION
        Ensures dataset is usable before rendering app
     ----------------------------------------------------- */
     if (!Array.isArray(hymnsArray)) {
@@ -56,7 +49,7 @@ export async function getHymns() {
     }
 
     /* -----------------------------------------------------
-       STEP 5: IMMUTABLE CACHE STORAGE
+       IMMUTABLE CACHE STORAGE
        Prevents accidental runtime modification of dataset
     ----------------------------------------------------- */
     hymnsCache = Object.freeze([...hymnsArray]);
@@ -65,7 +58,6 @@ export async function getHymns() {
   } catch (error) {
     /* -----------------------------------------------------
        CENTRALIZED ERROR HANDLING
-       Helps debug deployment vs local issues
     ----------------------------------------------------- */
     console.error("Hymn loading error:", error);
     throw error;

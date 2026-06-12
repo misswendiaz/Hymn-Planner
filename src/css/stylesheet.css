@@ -5,7 +5,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Merriweather:wght@300;400;700&display=swap");
 
 /* =========================================================
-   DESIGN SYSTEM (GLOBAL VARIABLES)
+   GLOBAL VARIABLES
 ========================================================= */
 
 :root {
@@ -119,7 +119,7 @@ span {
 }
 
 /* =========================================================
-   GENERATOR PAGE (FIXED BUTTON CENTERING)
+   GENERATOR PAGE
 ========================================================= */
 
 .generator {
@@ -136,7 +136,6 @@ span {
   gap: 20px;
 }
 
-/* CENTERED GENERATE BUTTON (FIXED) */
 .generate-button {
   display: flex;
   justify-content: center;
@@ -189,7 +188,7 @@ span {
 }
 
 /* =========================================================
-   ACTION SYSTEM (FIXED DISTRIBUTION)
+   ACTION SYSTEM
 ========================================================= */
 
 .actions,
@@ -211,7 +210,7 @@ span {
 }
 
 /* =========================================================
-   PLANS PAGE (FIXED ICON LAYOUT)
+   PLANS PAGE
 ========================================================= */
 
 .plans {
@@ -236,7 +235,6 @@ span {
   gap: 10px;
 }
 
-/* ACTION ICON BAR FIX */
 .plan-card .actions-bar {
   display: flex;
   justify-content: space-evenly;
@@ -251,14 +249,12 @@ span {
   align-items: center;
 }
 
-/* FORCE ICON VISIBILITY */
 .plan-card img {
   width: 18px;
   height: 18px;
   display: inline-block;
 }
 
-/* EDIT MODE FIX */
 .plan-card.edit-mode .actions-bar {
   display: flex !important;
 }
@@ -268,7 +264,7 @@ span {
 }
 
 /* =========================================================
-   LIBRARY PAGE (FIXED FLIP SYSTEM)
+   LIBRARY PAGE
 ========================================================= */
 
 .library {
@@ -312,7 +308,7 @@ span {
   perspective: 1000px;
 }
 
-/* FLIP SYSTEM (ONLY INNER ROTATES) */
+/* FLIP SYSTEM */
 .flip-inner {
   position: relative;
   min-height: 320px;
@@ -320,7 +316,15 @@ span {
   transition: transform 0.6s ease;
 }
 
-.hymn-card.flipped .flip-inner {
+.hymn-header {
+  cursor: pointer;
+}
+
+.flip-inner {
+  transform: none;
+}
+
+.hymn-card.title-hover .flip-inner {
   transform: rotateY(180deg);
 }
 
@@ -379,7 +383,7 @@ button:active {
 }
 
 /* =========================================================
-   LIBRARY ACTION BUTTONS (FIX)
+   LIBRARY ACTION BUTTONS
 ========================================================= */
 
 .hymn-actions {
@@ -427,7 +431,7 @@ button:active {
 }
 
 /* =========================================================
-   VIEW MODAL BUTTON LAYOUT FIX
+   VIEW MODAL BUTTON LAYOUT
 ========================================================= */
 
 .modal-content button {
@@ -443,6 +447,16 @@ button:active {
 /* group bottom actions */
 .modal-content button + button {
   margin-top: 0;
+}
+
+/* ================================
+   HOVER FLIP CONTROL
+================================ */
+
+/* Prevent buttons from triggering flip area issues */
+.hymn-header {
+  cursor: pointer;
+  user-select: none;
 }
 
 /* =========================================================

@@ -148,15 +148,6 @@ function filterHymnsBySlot(hymns, slot) {
   if (!rules) return hymns;
 
   return hymns.filter((hymn) => {
-    /*
-     * Google Sheet export stores topics and keywords
-     * as comma-separated strings:
-     *
-     * "faith, prayer, jesus christ"
-     *
-     * Convert them back into arrays before filtering.
-     */
-
     const topics = String(hymn.topics || "")
       .split(",")
       .map((t) => t.trim().toLowerCase())

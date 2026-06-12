@@ -58,6 +58,9 @@ export async function initLibraryPage(root) {
 
   bindEvents(root);
 
+  const hymnGrid = root.querySelector("#hymnGrid");
+  bindTitleHoverFlip(hymnGrid);
+
   // Global event delegation for dynamic cards
   window.addEventListener("click", (e) => {
     const viewBtn = e.target.closest("[data-action='view']");
@@ -65,16 +68,6 @@ export async function initLibraryPage(root) {
     const refreshBtn = e.target.closest("[data-action='refresh']");
 
     if (viewBtn) {
-      const card = viewBtn.closest(".hymn-card");
-
-      if (card) {
-        card.classList.add("flipped");
-
-        setTimeout(() => {
-          card.classList.remove("flipped");
-        }, 600);
-      }
-
       handleViewHymn(viewBtn.dataset.id);
     }
 
@@ -85,6 +78,32 @@ export async function initLibraryPage(root) {
   ensureModal(root);
 
   renderHymns(root);
+}
+
+function bindTitleHoverFlip(root) {
+  root.addEventListener(
+    "mouseenter",
+    (e) => {
+      const header = e.target.closest(".hymn-header");
+      if (!header) return;
+
+      const card = header.closest(".hymn-card");
+      if (card) card.classList.add("title-hover");
+    },
+    true,
+  );
+
+  root.addEventListener(
+    "mouseleave",
+    (e) => {
+      const header = e.target.closest(".hymn-header");
+      if (!header) return;
+
+      const card = header.closest(".hymn-card");
+      if (card) card.classList.remove("title-hover");
+    },
+    true,
+  );
 }
 
 /* =========================================================
@@ -127,7 +146,7 @@ function bindEvents(root) {
 }
 
 /* =========================================================
-   RENDER (PERFORMANCE SAFE)
+   RENDER
    ========================================================= */
 
 async function renderHymns(root) {
@@ -154,6 +173,7 @@ async function renderHymns(root) {
       .join("");
 
     container.insertAdjacentHTML("beforeend", batch);
+    bindTitleHoverFlip(container);
 
     index += batchSize;
 
@@ -271,7 +291,7 @@ function handleViewHymn(hymnId) {
   title.textContent = `${hymn.number}. ${hymn.title}`;
 
   // -----------------------------
-  // FULL HYMN DETAILS (RESTORED)
+  // FULL HYMN DETAILS
   // -----------------------------
   meta.innerHTML = `
     <div class="view-details">
@@ -296,7 +316,7 @@ function handleViewHymn(hymnId) {
   `;
 
   // -----------------------------
-  // SINGLE LINK (LYRICS + SHEET MUSIC)
+  // LYRICS + SHEET MUSIC LINK
   // -----------------------------
   const link = hymn.lyrics_link;
 
@@ -439,7 +459,7 @@ function ensureModal(root) {
     );
   }
 
-  // ✅ NEW: VIEW MODAL
+  // VIEW MODAL
   if (!root.querySelector("#viewModal")) {
     root.insertAdjacentHTML(
       "beforeend",

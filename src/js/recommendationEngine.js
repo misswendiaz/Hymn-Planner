@@ -114,13 +114,6 @@ function scoreHymn(hymn, userInput, rules) {
 
   let score = 0;
 
-  /* =========================================================
-     SAFE NORMALIZATION (CRITICAL FIX)
-     Handles BOTH:
-     - array format (old)
-     - string format (current Google Sheets export)
-     ========================================================= */
-
   const normalizeList = (value) => {
     if (!value) return [];
 
@@ -154,7 +147,7 @@ function scoreHymn(hymn, userInput, rules) {
   const inputMood = normalize(userInput.mood);
 
   /* =========================================================
-     SCORING LOGIC (UNCHANGED)
+     SCORING LOGIC
      ========================================================= */
 
   for (const t of inputTopics) {

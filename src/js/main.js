@@ -52,11 +52,24 @@ function setUpNavigation() {
     // Ignore links without valide routing info
     if (!page) return;
 
-    // Route to selected page
-    router(page);
+    window.location.hash = page;
   });
 }
 
 // Initializes page/content
 setUpNavigation();
-router("generator");
+
+function getPageFromURL() {
+  return window.location.hash.replace("#", "") || "generator";
+}
+
+function handleRouteChange() {
+  const page = getPageFromURL();
+  router(page);
+}
+
+window.addEventListener("hashchange", handleRouteChange);
+window.addEventListener("load", handleRouteChange);
+
+// initial load
+handleRouteChange();
